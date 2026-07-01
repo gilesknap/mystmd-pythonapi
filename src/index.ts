@@ -14,15 +14,15 @@ import { dirname } from "node:path";
 
 import type { ApiIndex, ApiItem, Extractor } from "./ir.js";
 import { stubExtractor, buildStubIndex } from "./extractor/stub.js";
-import { griffeExtractor } from "./extractor/griffe.js";
-import { warmGriffeExtractor } from "./extractor/warm.js";
+import { griffeExtractor, analyzeSync } from "./extractor/griffe.js";
+import { warmGriffeExtractor, analyze as warmAnalyze } from "./extractor/warm.js";
 import { renderIndex } from "./render/renderApi.js";
 import { renderInventory } from "./inventory/objectsInv.js";
 
 // ---- pluggable extractor (R5) --------------------------------------------
-// Extractors register here; selected by MYST_PYAPI_EXTRACTOR (default "stub").
-// M1 wires only the (synchronous) stub; M2 adds an async griffe extractor fed
-// by a warm Python sidecar and getIndex() becomes an awaited call.
+// The async Extractor objects are exposed via EXTRACTORS (consumed by
+// scripts/warm_harness.mjs and any external caller). getIndex() below selects a
+// concrete extractor by MYST_PYAPI_EXTRACTOR for use inside myst's hooks.
 const EXTRACTORS: Record<string, Extractor> = {
   stub: stubExtractor,
   griffe: griffeExtractor,
@@ -30,9 +30,27 @@ const EXTRACTORS: Record<string, Extractor> = {
 };
 
 // ---- module-scope memoized analysis (R2: never paid per-directive) --------
+// Selected by MYST_PYAPI_EXTRACTOR (default "stub"), mirroring src/cli.ts. The
+// directive/role/transform run() hooks are SYNCHRONOUS (myst-common's
+// DirectiveSpec/RoleSpec.run return GenericNode[], not a Promise), so getIndex()
+// must be sync — it calls the concrete SYNC extractor functions (griffe's
+// execFileSync one-shot / the warm sidecar's blocking fs.readSync), NOT the
+// async Extractor.analyze() wrappers, which cannot be awaited from here.
 let INDEX: ApiIndex | null = null;
 function getIndex(): ApiIndex {
-  if (!INDEX) INDEX = buildStubIndex();
+  if (INDEX) return INDEX;
+  const which = process.env.MYST_PYAPI_EXTRACTOR ?? "stub";
+  const roots = (process.env.MYST_PYAPI_ROOTS ?? "fixtures")
+    .split(",")
+    .filter(Boolean);
+  const pkg = process.env.MYST_PYAPI_PACKAGE ?? "sample";
+  if (which === "griffe") {
+    INDEX = analyzeSync(roots, pkg);
+  } else if (which === "griffe-warm") {
+    INDEX = warmAnalyze(roots, pkg);
+  } else {
+    INDEX = buildStubIndex();
+  }
   return INDEX;
 }
 

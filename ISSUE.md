@@ -26,7 +26,7 @@ I built a plugin that works around all four (explicit anchors + a custom role); 
 
 A Sphinx v2 inventory may abbreviate a uri whose fragment equals the object name using `$`:
 
-```
+```text
 re.Match py:class 1 library/re.html#$ -
 re.match py:function 1 library/re.html#$ -
 ```

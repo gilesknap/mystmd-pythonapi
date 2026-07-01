@@ -85,7 +85,11 @@ def myst_build_all(project_dir):
             shutil.rmtree(pp, ignore_errors=True)
         elif pp.exists():
             pp.unlink()
-    return run([MYST, "build", "--all"], cwd=str(d))
+    proc = run([MYST, "build", "--all"], cwd=str(d))
+    assert proc.returncode == 0, (
+        f"`myst build --all` failed\nSTDOUT:\n{proc.stdout}\nSTDERR:\n{proc.stderr}"
+    )
+    return proc
 
 
 _LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
@@ -105,5 +109,11 @@ def xml_hrefs(project_dir):
 
 def build_plugin_and_inventory():
     """Build the plugin (.mjs) and generate build/objects.inv from the stub. Idempotent."""
-    run([NPM, "run", "build"], cwd=str(REPO))
-    run([NODE, str(REPO / "dist" / "cli.mjs")], cwd=str(REPO))
+    build = run([NPM, "run", "build"], cwd=str(REPO))
+    assert build.returncode == 0, (
+        f"`npm run build` failed\nSTDOUT:\n{build.stdout}\nSTDERR:\n{build.stderr}"
+    )
+    inv = run([NODE, str(REPO / "dist" / "cli.mjs")], cwd=str(REPO))
+    assert inv.returncode == 0, (
+        f"`cli.mjs` (inventory gen) failed\nSTDOUT:\n{inv.stdout}\nSTDERR:\n{inv.stderr}"
+    )

@@ -105,7 +105,8 @@ def test_warm_sidecar_reflects_edits_without_restart(tmp_path):
 
 
 def test_warm_extractor_drives_sidecar_from_js(tmp_path):
-    """The built warm.ts extractor produces sample.match via the sidecar."""
+    """The built warm.ts extractor produces sample.match via the sidecar, and
+    the harness proves the sidecar is REUSED (stable pid across an analyze)."""
     pkgroot = tmp_path / "pkgroot"
     pkgroot.mkdir()
     _copy_sample(pkgroot)
@@ -122,3 +123,5 @@ def test_warm_extractor_drives_sidecar_from_js(tmp_path):
     names = set(payload["names"])
     assert "sample.match" in names, names
     assert "sample.Match" in names, names
+    # the sidecar pid was unchanged across the analyze -> warm reuse, not restart
+    assert payload["samePid"] is True, payload

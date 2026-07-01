@@ -14,6 +14,7 @@
             "version": "22"
         }
     },
+    "initializeCommand": "mkdir -p \"$HOME/.config/terminal-config\"",
     // The ONE thing claude-sandbox needs from a host devcontainer: a tun
     // device for its per-process network egress jail. Claude itself is NOT
     // installed here — guest it in by running `./install` from a peer clone
@@ -22,6 +23,9 @@
         "--device=/dev/net/tun"
     ],
     // Mount the parent as /workspaces so that peer clone is reachable.
+    "mounts": [
+        "source=${localEnv:HOME}/.config/terminal-config,target=/user-terminal-config,type=bind"
+    ],
     "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind",
     "workspaceFolder": "/workspaces/mystmd-pythonapi",
     "postCreateCommand": ".devcontainer/postCreate.sh",

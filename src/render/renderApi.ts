@@ -30,15 +30,49 @@ export interface RenderOpts {
 const text = (value: string): Node => ({ type: "text", value });
 const inlineCode = (value: string): Node => ({ type: "inlineCode", value });
 
+// The IR `kind` strings come from griffe's ParameterKind.value with spaces ->
+// underscores (python/pyapi_extract.py), i.e. hyphens are preserved:
+//   positional-only | positional_or_keyword | variadic_positional |
+//   keyword-only | variadic_keyword
+type Param = NonNullable<ApiItem["signature"]>["params"][number];
+
+// Display name with the varargs sigil (`*args` / `**kwargs`); plain otherwise.
+function paramDisplayName(p: Param): string {
+  if (p.kind === "variadic_positional") return `*${p.name}`;
+  if (p.kind === "variadic_keyword") return `**${p.name}`;
+  return p.name;
+}
+
 export function signatureString(item: ApiItem): string {
   if (!item.signature) return item.fullName;
-  const params = item.signature.params.map((p) => {
-    let s = p.name;
-    if (p.annotation) s += `: ${p.annotation}`;
-    if (p.default != null) s += `=${p.default}`;
-    return s;
+  const ps = item.signature.params;
+  // Index of the last positional-only param → a `/` marker goes after it.
+  let lastPosOnly = -1;
+  ps.forEach((p, i) => {
+    if (p.kind === "positional-only") lastPosOnly = i;
   });
-  let sig = `${item.name}(${params.join(", ")})`;
+
+  const parts: string[] = [];
+  let starEmitted = false; // a `*args` or a bare `*` already opened the kw-only group
+  ps.forEach((p, i) => {
+    // keyword-only group opener: a bare `*`, unless `*args` already opened it.
+    if (p.kind === "keyword-only" && !starEmitted) {
+      parts.push("*");
+      starEmitted = true;
+    }
+    const isVariadic =
+      p.kind === "variadic_positional" || p.kind === "variadic_keyword";
+    if (p.kind === "variadic_positional") starEmitted = true;
+    let s = paramDisplayName(p);
+    if (p.annotation) s += `: ${p.annotation}`;
+    // *args/**kwargs never carry a default in Python syntax (griffe reports
+    // ()/{} as their "default"); only real params render `=default`.
+    if (p.default != null && !isVariadic) s += `=${p.default}`;
+    parts.push(s);
+    if (i === lastPosOnly) parts.push("/"); // positional-only separator
+  });
+
+  let sig = `${item.name}(${parts.join(", ")})`;
   if (item.signature.returnAnnotation) sig += ` -> ${item.signature.returnAnnotation}`;
   return sig;
 }
@@ -59,12 +93,16 @@ function paramsList(item: ApiItem): Node[] {
   const dl: Node = {
     type: "definitionList",
     children: item.signature.params.flatMap((p) => {
-      const term: Node[] = [inlineCode(p.name)];
+      const term: Node[] = [inlineCode(paramDisplayName(p))];
       if (p.annotation) {
         term.push(text(" : "), { type: "emphasis", children: [text(p.annotation)] });
       }
       const descChildren: Node[] = [];
-      if (p.default != null) descChildren.push(text(`default: ${p.default}`));
+      const isVariadic =
+        p.kind === "variadic_positional" || p.kind === "variadic_keyword";
+      if (p.default != null && !isVariadic) {
+        descChildren.push(text(`default: ${p.default}`));
+      }
       return [
         { type: "definitionTerm", children: term },
         {

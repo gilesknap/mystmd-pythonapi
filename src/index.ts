@@ -119,6 +119,7 @@ const emitInventory = {
 
 export * from "./ir.js";
 export { getIndex, EXTRACTORS };
+export { signatureString } from "./render/renderApi.js";
 
 export default {
   name: "myst-pyapi",

@@ -287,10 +287,14 @@ def _walk(obj: Any, dotted: str, public_path: str, items: dict, parent_is_class:
 
 def _build_from_loader(loader: Any, roots: list, package: str) -> dict:
     """Load `package` with `loader` and walk it into an ApiIndex dict."""
-    # runtime import needs the roots on sys.path.
-    for r in roots:
-        if r not in sys.path:
-            sys.path.insert(0, r)
+    # runtime import needs the roots on sys.path, with the CURRENT roots taking
+    # priority: drop any existing occurrence and re-insert at the front (in
+    # reverse so roots[0] ends up first). Otherwise a later analyze with
+    # different roots could import a same-named package from a stale path.
+    for r in reversed(roots):
+        while r in sys.path:
+            sys.path.remove(r)
+        sys.path.insert(0, r)
 
     top = loader.load(package)
 
@@ -334,6 +338,13 @@ class Analyzer:
         return self._loader
 
     def analyze(self, roots: list, package: str) -> dict:
+        # Treat the process-global runtime-import cache as part of the warm
+        # cache: if the roots changed since the last analyze, a cached
+        # sys.modules[package] from the PREVIOUS roots would make _runtime_all
+        # return the wrong __all__. Purge it (as invalidate does) so the next
+        # import re-reads from the now-front-of-sys.path new roots.
+        if self._roots is not None and self._roots != roots:
+            self._purge_runtime(package)
         loader = self._get_loader(roots)
         return _build_from_loader(loader, roots, package)
 
@@ -344,6 +355,11 @@ class Analyzer:
         self._roots = None
         # Drop the runtime import cache for `package` (and submodules) so the
         # __all__ re-import picks up the edited source.
+        self._purge_runtime(package)
+
+    @staticmethod
+    def _purge_runtime(package: str) -> None:
+        """Drop `package` (and its submodules) from the runtime import cache."""
         for name in list(sys.modules):
             if name == package or name.startswith(package + "."):
                 del sys.modules[name]

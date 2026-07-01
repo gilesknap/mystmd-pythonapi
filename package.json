@@ -1,0 +1,20 @@
+{
+  "name": "myst-pyapi",
+  "version": "0.1.0",
+  "description": "Case-sensitive, intersphinx-compatible API cross-references for mystmd",
+  "type": "module",
+  "private": true,
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsup",
+    "build:watch": "tsup --watch"
+  },
+  "devDependencies": {
+    "mystmd": "1.10.1",
+    "myst-common": "^1.5.0",
+    "tsup": "^8.3.0",
+    "typescript": "^5.6.0"
+  }
+}

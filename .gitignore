@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.venv/
+build/
+_build/
+*.log
+__pycache__/
+*.pyc
+.myst.session.json
+# per-test scratch build dirs
+tests/**/_build/
+tests/**/out.xml
+tests/**/objects.inv
+# §6 investigation scratch (probe myst projects, build artifacts, downloaded templates)
+experiments/

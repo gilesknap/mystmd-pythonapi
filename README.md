@@ -35,7 +35,7 @@ extractor choice can change without touching the linking/rendering layer.
 
 ## Layout
 
-```
+```text
 src/
   ir.ts                 # the IR: ApiItem / ApiIndex / Extractor (SPEC §8)
   extractor/stub.ts     # hardcoded 'sample' model (test double / M1 proof)

@@ -7,7 +7,7 @@ Deliverables: FINDINGS.md, ISSUE.md, README.md, green run_all.sh, swappable stub
 
 
 Working notes so any agent can resume after a context clear. The authoritative
-spec is `SPEC.md`; the oracle is `./run_all.sh` (not yet written).
+spec is `SPEC.md`; the oracle is `./run_all.sh`.
 
 ## Toolchain (DONE — see memory `toolchain-bootstrap`)
 - npm 10.9.2 on PATH via `/root/.local/bin/npm`; myst v1.10.1 at `./node_modules/.bin/myst`.

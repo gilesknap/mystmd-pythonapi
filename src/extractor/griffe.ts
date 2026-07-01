@@ -13,8 +13,11 @@ import { fileURLToPath } from "node:url";
 
 import type { ApiIndex, Extractor } from "../ir.js";
 
-// Absolute path to python/extract.py, resolved relative to THIS module so it
-// works both from src (tsx) and from the bundled dist/*.mjs.
+// Absolute path to python/extract.py, resolved relative to THIS module. The
+// plugin/CLI is only ever executed from the bundled dist/*.mjs (never from src
+// via tsx), where `../python/extract.py` resolves to the repo-root python/ dir.
+// No src-relative fallback is needed. (Deploying python/ from PyPI — see issue
+// #3 — would replace this path resolution with `python -m` invocation.)
 function extractScriptPath(): string {
   return fileURLToPath(new URL("../python/extract.py", import.meta.url));
 }

@@ -39,15 +39,28 @@ logging.getLogger("griffe").setLevel(logging.CRITICAL)
 # kind mapping: griffe Kind -> §8 ItemKind
 # --------------------------------------------------------------------------
 def _is_exception(obj: Any) -> bool:
-    """True if a class (transitively, by name) derives from Exception."""
+    """True if a class derives (transitively) from Exception.
+
+    griffe resolves in-collection ancestors via ``mro()``; builtins like
+    ``Exception``/``ValueError`` are never loaded into the collection, so they
+    are dropped from ``resolved_bases``/``mro()``. We therefore apply a
+    short-name heuristic to the bases of the class AND of every resolvable
+    ancestor — catching both ``class E(Exception)`` and ``class E2(E)`` where
+    ``E`` is loaded. A transitive base defined in an unloaded external package
+    is not resolvable by static analysis and is not detected (inherent limit).
+    """
+    classes = [obj]
     try:
-        for base in obj.bases:
+        # C3-linearized in-collection ancestors; may raise on cycles / non-Class.
+        classes += obj.mro()
+    except Exception:
+        pass
+    for cls in classes:
+        for base in getattr(cls, "bases", None) or []:
             name = str(getattr(base, "canonical_path", base) or base)
             short = name.rsplit(".", 1)[-1]
             if short in {"Exception", "BaseException"} or short.endswith("Error"):
                 return True
-    except Exception:
-        pass
     return False
 
 

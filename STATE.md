@@ -1,5 +1,11 @@
 # Project state (continuity doc)
 
+## ✅ COMPLETE — all milestones M0–M6 done. `./run_all.sh` → 18 passed.
+Committed on branch `feat/case-sensitive-api-xrefs`, pushed, PR #1 opened:
+https://github.com/gilesknap/mystmd-pythonapi/pull/1
+Deliverables: FINDINGS.md, ISSUE.md, README.md, green run_all.sh, swappable stub+griffe extractor, warm sidecar + watch test.
+
+
 Working notes so any agent can resume after a context clear. The authoritative
 spec is `SPEC.md`; the oracle is `./run_all.sh` (not yet written).
 

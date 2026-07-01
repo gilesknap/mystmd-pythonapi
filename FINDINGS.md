@@ -153,7 +153,7 @@ With the design above, the acceptance oracle `./run_all.sh` is green:
 - **T1** — the generated `objects.inv` is a valid v2 inventory with distinct
   `sample.match` (py:function) and `sample.Match` (py:class) rows at distinct uris,
   plus `sample.Match.group` (py:method).
-- **T2** — a Sphinx project consumes that inventory under `-n -W` (warnings as
+- **T2** — a Sphinx project consumes that inventory under `-n` and `-W` (warnings as
   errors) and resolves ``:py:class:`sample.Match``` and ``:py:func:`sample.match```
   to **different** URLs. Sphinx-side case-sensitivity proven.
 - **T3 / T5** — mystmd consumes our inventory (T3) and the vendored CPython

@@ -1,0 +1,36 @@
+// mystmd-pythonapi dev container.
+// Node + Python toolchain for the SPEC.md acceptance oracle (./run_all.sh).
+// For format details, see https://containers.dev/implementors/json_reference/
+{
+    "name": "mystmd-pythonapi",
+    "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+    // claude-sandbox refuses to install unless the in-container user is root
+    // (the rootless-podman/docker pattern).
+    "remoteUser": "root",
+    "features": {
+        // Node >=18; SPEC.md is verified on 22. Provides node + npm on PATH,
+        // so `npm ci` gives ./node_modules/.bin/myst (mystmd@1.10.1, pinned).
+        "ghcr.io/devcontainers/features/node:1": {
+            "version": "22"
+        }
+    },
+    // The ONE thing claude-sandbox needs from a host devcontainer: a tun
+    // device for its per-process network egress jail. Claude itself is NOT
+    // installed here — guest it in by running `./install` from a peer clone
+    // at /workspaces/claude-sandbox.
+    "runArgs": [
+        "--device=/dev/net/tun"
+    ],
+    // Mount the parent as /workspaces so that peer clone is reachable.
+    "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind",
+    "workspaceFolder": "/workspaces/mystmd-pythonapi",
+    "postCreateCommand": ".devcontainer/postCreate.sh",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python",
+                "redhat.vscode-yaml"
+            ]
+        }
+    }
+}

@@ -1,7 +1,7 @@
 // mystmd-pythonapi dev container.
 // Node + Python toolchain for the SPEC.md acceptance oracle (./run_all.sh).
-// Built from .devcontainer/Dockerfile (Node installed there; python + uv come
-// from the ghcr.io/diamondlightsource/ubuntu-devcontainer base image).
+// Built from .devcontainer/Dockerfile. Node + npm, python and uv all come from
+// the ghcr.io/diamondlightsource/ubuntu-devcontainer base image.
 // For format details, see https://containers.dev/implementors/json_reference/
 {
     "name": "mystmd-pythonapi",

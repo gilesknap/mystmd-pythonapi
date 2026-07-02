@@ -10,11 +10,10 @@ export can't serialize, so we exercise the render function directly.)
 import json
 import subprocess
 
-from harness import NODE, REPO
+from harness import NODE, REPO, VENV_PY
 
 DIST = str(REPO / "dist" / "index.mjs")
 FIXTURES = str(REPO / "fixtures")
-VENV_PY = str(REPO / ".venv" / "bin" / "python")
 
 
 def _rendered_signatures():

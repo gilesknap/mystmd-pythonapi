@@ -1,0 +1,24 @@
+[project]
+name = "mystmd-pythonapi"
+version = "0.0.0"
+description = "Python API cross-reference toolchain for the SPEC.md acceptance oracle"
+requires-python = ">=3.12"
+# Extractor toolchain (griffe-backed extraction + objects.inv writing).
+dependencies = [
+    "griffe",
+    "sphinx",
+    "sphobjinv",
+    "numpydoc",
+]
+
+[project.optional-dependencies]
+# Acceptance oracle (./run_all.sh -> pytest tests/).
+test = [
+    "pytest",
+]
+
+[tool.uv]
+# Non-package project: uv manages the venv + deps, it does not build/install
+# the repo itself. The Python under python/ is run as scripts/subprocesses,
+# not imported as an installed package.
+package = false

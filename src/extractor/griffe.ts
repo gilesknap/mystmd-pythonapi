@@ -22,11 +22,14 @@ function extractScriptPath(): string {
   return fileURLToPath(new URL("../python/extract.py", import.meta.url));
 }
 
-// Python interpreter: env override, else the repo venv. Resolved relative to
-// python/extract.py's parent (repo root) when falling back to the venv.
+// Python interpreter: explicit override (MYST_PYAPI_PYTHON), else an active venv
+// ($VIRTUAL_ENV, e.g. a relocated cache venv), else the in-repo .venv resolved
+// relative to this module (repo root).
 function pythonPath(): string {
   const env = process.env.MYST_PYAPI_PYTHON;
   if (env) return env;
+  const venv = process.env.VIRTUAL_ENV;
+  if (venv) return `${venv}/bin/python`;
   return fileURLToPath(new URL("../.venv/bin/python", import.meta.url));
 }
 

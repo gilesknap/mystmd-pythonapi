@@ -11,8 +11,9 @@ cd "$(dirname "$0")/.."
 
 # --- Python (uv from the base image -> venv in the shared cache) ---
 # uv sync builds the venv at $UV_PROJECT_ENVIRONMENT from pyproject.toml/uv.lock.
-# Use the base image's Python 3.14; never download a managed interpreter.
-uv sync --all-extras --python 3.14 --python-preference only-system
+# Use the base image's system Python (>=3.12 per pyproject); never download a
+# managed interpreter.
+uv sync --all-extras --python-preference only-system
 
 # --- Node deps (node/npm come from the Dockerfile) ---
 npm ci

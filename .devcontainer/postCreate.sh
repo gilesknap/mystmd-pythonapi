@@ -10,9 +10,9 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 # --- Python (uv from the base image -> venv in the shared cache) ---
-VENV="${UV_PROJECT_ENVIRONMENT:-.venv}"
-uv venv --python 3.14 --python-preference only-system "$VENV"
-uv pip install --python "$VENV/bin/python" -r requirements.txt
+# uv sync builds the venv at $UV_PROJECT_ENVIRONMENT from pyproject.toml/uv.lock.
+# Use the base image's Python 3.14; never download a managed interpreter.
+uv sync --all-extras --python 3.14 --python-preference only-system
 
 # --- Node deps (node/npm come from the Dockerfile) ---
 npm ci

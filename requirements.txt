@@ -1,6 +1,0 @@
-# Python toolchain for the SPEC.md acceptance oracle (./run_all.sh).
-griffe
-sphinx
-sphobjinv
-numpydoc
-pytest

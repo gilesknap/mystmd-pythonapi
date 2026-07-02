@@ -8,7 +8,7 @@ case-correct URLs against the inventory, with the build succeeding under `-n -W`
 import re
 import subprocess
 
-from harness import REPO
+from harness import REPO, VENV
 
 INV = REPO / "build" / "objects.inv"
 
@@ -42,7 +42,7 @@ def test_sphinx_consumer(tmp_path):
 
     proc = subprocess.run(
         [
-            str(REPO / ".venv" / "bin" / "sphinx-build"),
+            str(VENV / "bin" / "sphinx-build"),
             "-n",
             "-W",
             "-b",

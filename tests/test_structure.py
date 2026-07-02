@@ -19,9 +19,8 @@ literal one (all_static).
 import json
 import subprocess
 
-from harness import REPO
+from harness import REPO, VENV_PY
 
-VENV_PY = str(REPO / ".venv" / "bin" / "python")
 EXTRACT = str(REPO / "python" / "extract.py")
 FIXTURES = str(REPO / "fixtures")
 

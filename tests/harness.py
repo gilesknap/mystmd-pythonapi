@@ -22,7 +22,10 @@ import tempfile
 import threading
 
 REPO = pathlib.Path(__file__).resolve().parent.parent
-VENV_PY = str(REPO / ".venv" / "bin" / "python")
+# Honour an active venv ($VIRTUAL_ENV, e.g. a relocated cache venv); fall back to
+# the in-repo .venv. Matches run_all.sh's VENV_PY resolution.
+VENV = pathlib.Path(os.environ.get("VIRTUAL_ENV") or (REPO / ".venv"))
+VENV_PY = str(VENV / "bin" / "python")
 MYST = str(REPO / "node_modules" / ".bin" / "myst")
 NODE = shutil.which("node") or "/usr/bin/node"
 NPM = shutil.which("npm") or "/root/.local/bin/npm"

@@ -1,31 +1,52 @@
 // mystmd-pythonapi dev container.
 // Node + Python toolchain for the SPEC.md acceptance oracle (./run_all.sh).
+// Built from .devcontainer/Dockerfile (Node installed there; python + uv come
+// from the ghcr.io/diamondlightsource/ubuntu-devcontainer base image).
 // For format details, see https://containers.dev/implementors/json_reference/
 {
     "name": "mystmd-pythonapi",
-    "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
     // claude-sandbox refuses to install unless the in-container user is root
     // (the rootless-podman/docker pattern).
     "remoteUser": "root",
-    "features": {
-        // Node >=18; SPEC.md is verified on 22. Provides node + npm on PATH,
-        // so `npm ci` gives ./node_modules/.bin/myst (mystmd@1.10.1, pinned).
-        "ghcr.io/devcontainers/features/node:1": {
-            "version": "22"
-        }
+    "remoteEnv": {
+        // Disable SSH agent forwarding to prevent prompt injection from using
+        // SSH keys (GitHub access goes via HTTPS + gh's credential helper).
+        "SSH_AUTH_SOCK": "",
+        // Put uv's caches in the persistent /cache volume.
+        "UV_CACHE_DIR": "/cache/uv",
+        "UV_PYTHON_CACHE_DIR": "/cache/uv-python",
+        // Keep the venv in the shared cache, keyed by workspace path so it
+        // survives rebuilds and doesn't collide across workspaces.
+        "UV_PROJECT_ENVIRONMENT": "/cache/venv-for${localWorkspaceFolder}",
+        // Do the equivalent of "activate" the venv so we don't have to prefix
+        // everything with `uv run`. run_all.sh honours $VIRTUAL_ENV.
+        "VIRTUAL_ENV": "/cache/venv-for${localWorkspaceFolder}",
+        "PATH": "/cache/venv-for${localWorkspaceFolder}/bin:${containerEnv:PATH}"
     },
     "initializeCommand": "mkdir -p \"$HOME/.config/terminal-config\"",
-    // The ONE thing claude-sandbox needs from a host devcontainer: a tun
-    // device for its per-process network egress jail. Claude itself is NOT
-    // installed here — guest it in by running `./install` from a peer clone
-    // at /workspaces/claude-sandbox.
     "runArgs": [
-        "--device=/dev/net/tun"
+        // The ONE thing claude-sandbox needs from a host devcontainer: a tun
+        // device for its per-process network egress jail. Claude itself is NOT
+        // installed here — guest it in by running `./install` from a peer clone
+        // at /workspaces/claude-sandbox.
+        "--device=/dev/net/tun",
+        // Allow SELinux to permit host file copies (rootless podman on el9).
+        "--security-opt=label=disable"
     ],
-    // Mount the parent as /workspaces so that peer clone is reachable.
     "mounts": [
+        // Persistent shared cache for uv + the workspace venv.
+        {
+            "source": "devcontainer-shared-cache",
+            "target": "/cache",
+            "type": "volume"
+        },
+        // Mount in the user terminal config folder so it can be edited.
         "source=${localEnv:HOME}/.config/terminal-config,target=/user-terminal-config,type=bind"
     ],
+    // Mount the parent as /workspaces so the claude-sandbox peer clone is reachable.
     "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind",
     "workspaceFolder": "/workspaces/mystmd-pythonapi",
     "postCreateCommand": ".devcontainer/postCreate.sh",

@@ -4,7 +4,7 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 export PATH="/root/.local/bin:$PATH"
-VENV_PY="$PWD/.venv/bin/python"
+VENV_PY="${VIRTUAL_ENV:-$PWD/.venv}/bin/python"
 
 PYTEST_ARGS=(-q)
 if [ "${1:-}" = "-x" ]; then PYTEST_ARGS=(-q -x); fi
